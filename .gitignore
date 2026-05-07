@@ -1,0 +1,11 @@
+# Local experiment artifacts
+xray-local/
+ws-echo-server.js
+ws-test-client.js
+
+# Runtime output
+*.log
+*.pid
+
+# OS/editor noise
+.DS_Store
