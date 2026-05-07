@@ -11,7 +11,7 @@ bash service/codespaces-vless/setup.sh
 bash service/codespaces-vless/start.sh
 ```
 
-The setup script installs Xray for the current Linux architecture, creates a stable UUID, and writes the generated Xray server config under `.local/codespaces-vless/`. The startup script starts Xray on port `10086`, starts the helper page on port `18080`, and tries to set both forwarded ports to public visibility.
+The setup script installs Xray for the current Linux architecture, creates a stable UUID, and writes the generated Xray server config under `.local/codespaces-vless/`. The startup script starts Xray on port `10086` and starts the helper page on port `18080`.
 
 To open the helper page, open the Codespaces **Ports** panel and open forwarded port `18080`. The page shows the current internal IPv4 address, observed helper host, derived VLESS forwarded host, UUID, WebSocket path, VLESS URL, Clash Verge/Mihomo YAML, Xray client JSON, and a routing rule such as:
 
@@ -35,16 +35,18 @@ GitHub forwarding -> VLESS + WebSocket + security: none -> Xray on port 10086
 
 Do not enable Xray-managed TLS for this inbound unless the forwarding model changes.
 
-## Public Port Fallback
+## Public Ports
 
-Startup runs a best-effort command equivalent to:
+Set forwarded ports `10086` and `18080` to **Public** manually in the Codespaces Ports panel. The VLESS client snippets require the VLESS service port `10086` to be public. The helper page also exposes UUID-bearing snippets, so treat the helper URL as sensitive.
+
+## Startup Timing
+
+Setup and startup scripts log phase timings to help diagnose slow Codespace creation or startup. `setup.sh` reports directory setup, Xray install checks, and config generation. `start.sh` reports setup checks, Xray startup, helper startup, and total startup time.
 
 ```bash
-gh codespace ports visibility 10086:public -c "$CODESPACE_NAME"
-gh codespace ports visibility 18080:public -c "$CODESPACE_NAME"
+tail -n 80 .local/codespaces-vless/logs/setup.log
+tail -n 80 .local/codespaces-vless/logs/startup.log
 ```
-
-If GitHub CLI authentication, organization policy, or Codespaces policy blocks automation, set the ports to **Public** manually in the Codespaces Ports panel. The VLESS client snippets require the VLESS service port `10086` to be public. The helper page also exposes UUID-bearing snippets, so treat the helper URL as sensitive.
 
 ## Validation
 

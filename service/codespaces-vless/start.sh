@@ -10,11 +10,24 @@ log() {
   printf '[codespaces-vless start] %s\n' "$*" | tee -a "${CODESPACES_VLESS_STARTUP_LOG}"
 }
 
+time_stage() {
+  local label="$1"
+  shift
+
+  local started finished elapsed
+  started="${SECONDS}"
+  "$@"
+  finished="${SECONDS}"
+  elapsed=$((finished - started))
+  log "${label} completed in ${elapsed}s"
+}
+
 port_listening() {
   local port="$1"
   if command -v ss >/dev/null 2>&1; then
-    ss -ltn "( sport = :${port} )" | tail -n +2 | grep -q .
-    return
+    if ss -ltn "( sport = :${port} )" 2>/dev/null | tail -n +2 | grep -q .; then
+      return 0
+    fi
   fi
   timeout 1 bash -c ":</dev/tcp/127.0.0.1/${port}" >/dev/null 2>&1
 }
@@ -22,6 +35,16 @@ port_listening() {
 pid_running() {
   local pid_file="$1"
   [[ -s "${pid_file}" ]] && kill -0 "$(cat "${pid_file}")" >/dev/null 2>&1
+}
+
+ensure_setup() {
+  if [[ -x "${CODESPACES_VLESS_XRAY_BIN}" ]] && [[ -s "${CODESPACES_VLESS_XRAY_CONFIG}" ]]; then
+    log "Xray binary and config already exist; skipping setup"
+    return
+  fi
+
+  log "Xray binary or config is missing; running setup"
+  "${SCRIPT_DIR}/setup.sh"
 }
 
 start_xray() {
@@ -58,40 +81,18 @@ start_helper() {
   fi
 }
 
-set_public_port() {
-  local port="$1"
-
-  if ! command -v gh >/dev/null 2>&1; then
-    log "GitHub CLI is unavailable; manually set port ${port} visibility to Public in the Codespaces Ports panel."
-    return
-  fi
-
-  if ! gh auth status >/dev/null 2>&1; then
-    log "GitHub CLI is not authenticated; run 'gh auth login' or manually set port ${port} visibility to Public in the Codespaces Ports panel."
-    return
-  fi
-
-  if [[ -n "${CODESPACE_NAME:-}" ]]; then
-    if gh codespace ports visibility "${port}:public" -c "${CODESPACE_NAME}" >/dev/null 2>&1; then
-      log "set port ${port} visibility to public"
-      return
-    fi
-  else
-    if gh codespace ports visibility "${port}:public" >/dev/null 2>&1; then
-      log "set port ${port} visibility to public"
-      return
-    fi
-  fi
-
-  log "could not set port ${port} public automatically; use the Codespaces Ports panel or run: gh codespace ports visibility ${port}:public -c \"${CODESPACE_NAME:-<codespace-name>}\""
-}
-
 main() {
-  "${SCRIPT_DIR}/setup.sh"
-  start_xray
-  start_helper
-  set_public_port "${CODESPACES_VLESS_PORT}"
-  set_public_port "${CODESPACES_VLESS_HELPER_PORT}"
+  local started finished elapsed
+  started="${SECONDS}"
+
+  log "startup timing begins"
+  time_stage "setup check" ensure_setup
+  time_stage "Xray startup" start_xray
+  time_stage "helper startup" start_helper
+
+  finished="${SECONDS}"
+  elapsed=$((finished - started))
+  log "startup completed in ${elapsed}s"
   log "helper page: forward/open port ${CODESPACES_VLESS_HELPER_PORT}; VLESS service port: ${CODESPACES_VLESS_PORT}"
 }
 

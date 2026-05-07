@@ -17,8 +17,8 @@
 - [x] 3.1 Add devcontainer lifecycle configuration to run setup during Codespace creation.
 - [x] 3.2 Add startup automation that starts Xray if it is not already running.
 - [x] 3.3 Add startup automation that starts the connection helper web server if it is not already running.
-- [x] 3.4 Add best-effort GitHub CLI port visibility automation for the VLESS service port and helper page port.
-- [x] 3.5 Log actionable fallback instructions when public port visibility cannot be set automatically.
+- [x] 3.4 Keep public port visibility as a manual Codespaces Ports panel step.
+- [x] 3.5 Add setup and startup timing logs for diagnosing slow Codespace creation or startup.
 
 ## 4. Connection Helper Page
 
@@ -35,7 +35,7 @@
 
 - [x] 5.1 Verify a fresh Codespace setup installs Xray, creates configuration, and starts the VLESS service.
 - [x] 5.2 Verify the helper page starts automatically and displays the current internal IP and generated node details.
-- [x] 5.3 Verify public port visibility automation succeeds when allowed or produces clear fallback instructions when blocked.
+- [x] 5.3 Verify startup does not call GitHub CLI for public port visibility.
 - [x] 5.4 Verify a generated Clash Verge/Mihomo configuration can route traffic to a local HTTP test service through the VLESS endpoint.
 - [x] 5.5 Verify repeated startup does not create duplicate Xray or helper server processes.
 - [x] 5.6 Verify generated secrets and downloaded binaries are not tracked by Git.
@@ -45,5 +45,5 @@
 
 - [x] 6.1 Document how to open the connection helper page after Codespace startup.
 - [x] 6.2 Document the external TLS versus internal plain WebSocket transport model.
-- [x] 6.3 Document how to manually set forwarded ports to public when automation fails.
+- [x] 6.3 Document how to manually set forwarded ports to public.
 - [x] 6.4 Document current client support and record XHTTP as a future investigation item.

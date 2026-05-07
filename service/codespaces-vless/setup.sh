@@ -6,7 +6,20 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/defaults.sh"
 
 log() {
-  printf '[codespaces-vless setup] %s\n' "$*"
+  codespaces_vless_ensure_dirs
+  printf '[codespaces-vless setup] %s\n' "$*" | tee -a "${CODESPACES_VLESS_SETUP_LOG}"
+}
+
+time_stage() {
+  local label="$1"
+  shift
+
+  local started finished elapsed
+  started="${SECONDS}"
+  "$@"
+  finished="${SECONDS}"
+  elapsed=$((finished - started))
+  log "${label} completed in ${elapsed}s"
 }
 
 detect_xray_asset() {
@@ -118,9 +131,17 @@ JSON
 }
 
 main() {
-  codespaces_vless_ensure_dirs
-  install_xray
-  write_xray_config
+  local started finished elapsed
+  started="${SECONDS}"
+
+  log "setup timing begins"
+  time_stage "directory setup" codespaces_vless_ensure_dirs
+  time_stage "Xray install check" install_xray
+  time_stage "config generation" write_xray_config
+
+  finished="${SECONDS}"
+  elapsed=$((finished - started))
+  log "setup completed in ${elapsed}s"
 }
 
 main "$@"

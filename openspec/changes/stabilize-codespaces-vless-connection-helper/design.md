@@ -21,7 +21,7 @@ The fragile parts are service startup, dynamic internal IPs, dynamic forwarded h
 - Make the VLESS service reproducible across Codespace starts.
 - Start both Xray and the connection helper automatically when the Codespace starts.
 - Expose current runtime facts through a helper page: internal IP, forwarded host, UUID, port, WebSocket path, and client configuration snippets.
-- Attempt to set required forwarded ports to public visibility automatically.
+- Document that required forwarded ports must be set to public visibility manually.
 - Clearly document the difference between external TLS and internal plain WebSocket.
 - Keep the first implementation compatible with Clash Verge/Mihomo using VLESS over WebSocket.
 
@@ -62,11 +62,11 @@ Do not hard-code the Codespace internal IP or forwarded host. The helper should 
 
 When host derivation is uncertain, the helper should display the observed helper page host and explain how to verify the corresponding VLESS forwarded URL.
 
-### Use best-effort public port visibility automation
+### Use manual public port visibility
 
-The startup process should try to run GitHub CLI commands equivalent to setting the VLESS and helper ports public. If GitHub CLI authentication, organization policy, or Codespaces policy blocks the change, the helper page and startup logs should explain the manual fallback.
+The startup process should not call GitHub CLI to change Codespaces port visibility. Users should set the VLESS and helper ports to public in the Codespaces Ports panel.
 
-Alternative considered: requiring manual public visibility setup only. This is simpler but creates a repeated setup burden and is easy to forget.
+Alternative considered: best-effort GitHub CLI automation. This adds startup latency and failure noise when authentication or Codespaces policy blocks the command, so the initial workflow keeps visibility as an explicit manual step.
 
 ### Keep UUID stable by default and support later rotation
 
@@ -75,7 +75,7 @@ The first implementation should persist a generated UUID across restarts to avoi
 ## Risks / Trade-offs
 
 - Public forwarded URLs behave like bearer-style entry points: anyone with the URL can attempt to connect. Mitigation: require the VLESS UUID, explain leakage risks, avoid committing generated secrets, and consider a rotation command.
-- GitHub organization policy may prevent public port visibility. Mitigation: make port visibility best effort and provide clear manual instructions.
+- GitHub organization policy may prevent public port visibility. Mitigation: document the manual visibility step and keep startup independent from GitHub CLI behavior.
 - Codespaces forwarded host derivation may vary. Mitigation: display observed host data and allow manual verification.
 - WebSocket transport may be removed from Xray in the future. Mitigation: keep XHTTP as a tracked future investigation, not an MVP dependency.
 - The helper page may expose sensitive node information if made public. Mitigation: document that the helper page should be treated as sensitive and consider showing warnings before revealing full config snippets.
@@ -84,7 +84,7 @@ The first implementation should persist a generated UUID across restarts to avoi
 
 1. Add the automation and helper page alongside the existing manual files.
 2. Validate a fresh Codespace start creates or reuses Xray configuration and starts both services.
-3. Validate the VLESS forwarded port and helper forwarded port are public or show actionable fallback instructions.
+3. Validate the VLESS forwarded port and helper forwarded port can be made public manually through the Ports panel.
 4. Validate generated Clash Verge/Mihomo configuration reaches an internal test HTTP service.
 5. Keep manual commands documented as rollback for users who need to start Xray directly.
 

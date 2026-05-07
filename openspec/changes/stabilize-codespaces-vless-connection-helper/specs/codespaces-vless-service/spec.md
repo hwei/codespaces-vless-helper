@@ -33,16 +33,16 @@ The system SHALL start the VLESS service during Codespace startup without requir
 - **WHEN** startup automation runs while Xray is already listening on the configured port
 - **THEN** the automation does not start duplicate Xray processes
 
-### Requirement: Forwarded ports are made public when possible
-The system SHALL attempt to set the VLESS service port and connection helper port to public visibility using available GitHub Codespaces tooling.
+### Requirement: Forwarded port visibility is manual
+The system SHALL require users to set the VLESS service port and connection helper port to public visibility manually in the Codespaces Ports panel.
 
-#### Scenario: Public visibility succeeds
-- **WHEN** GitHub CLI authentication and policy allow public port visibility
-- **THEN** the startup process sets the configured ports to public visibility
+#### Scenario: Startup avoids port visibility mutation
+- **WHEN** startup automation runs
+- **THEN** it does not call GitHub CLI to change forwarded port visibility
 
-#### Scenario: Public visibility is blocked
-- **WHEN** GitHub CLI authentication, organization policy, or Codespaces policy prevents public visibility
-- **THEN** the system reports a clear fallback instruction for manually setting the ports to public
+#### Scenario: Manual public visibility
+- **WHEN** a user needs external client access
+- **THEN** they set the configured ports to public in the Codespaces Ports panel
 
 ### Requirement: Transport model is explicit
 The system MUST preserve plain HTTP WebSocket between GitHub's forwarding layer and the Xray inbound while requiring clients to use TLS when connecting through the GitHub forwarded HTTPS host.
