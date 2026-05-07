@@ -3,6 +3,16 @@ xray-local/
 ws-echo-server.js
 ws-test-client.js
 
+# Generated Codespaces VLESS runtime assets
+.local/
+service/codespaces-vless/runtime/
+service/codespaces-vless/logs/
+service/codespaces-vless/state/
+service/codespaces-vless/bin/
+service/codespaces-vless/config/generated/
+*.uuid
+*.secret
+
 # Runtime output
 *.log
 *.pid

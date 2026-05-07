@@ -1,0 +1,17 @@
+{
+  "name": "codespaces-vless-helper",
+  "postCreateCommand": "bash service/codespaces-vless/setup.sh",
+  "postStartCommand": "bash service/codespaces-vless/start.sh",
+  "portsAttributes": {
+    "10086": {
+      "label": "VLESS WebSocket",
+      "protocol": "http",
+      "visibility": "public"
+    },
+    "18080": {
+      "label": "VLESS connection helper",
+      "protocol": "http",
+      "visibility": "public"
+    }
+  }
+}
