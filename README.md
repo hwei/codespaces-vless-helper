@@ -41,7 +41,7 @@ Set forwarded ports `10086` and `18080` to **Public** manually in the Codespaces
 
 ## Startup Timing
 
-Setup and startup scripts log phase timings to help diagnose slow Codespace creation or startup. `setup.sh` reports directory setup, Xray install checks, and config generation. `start.sh` reports setup checks, Xray startup, helper startup, and total startup time.
+Setup and startup scripts log phase timings to help diagnose slow Codespace creation or startup. `setup.sh` reports directory setup, Xray install checks, and config generation. `start.sh` reports setup checks, Xray startup, helper startup, and total startup time. Startup waits for service ports to listen before moving to the next stage.
 
 ```bash
 tail -n 80 .local/codespaces-vless/logs/setup.log

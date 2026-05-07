@@ -14,12 +14,20 @@ time_stage() {
   local label="$1"
   shift
 
-  local started finished elapsed
+  local started finished elapsed status
   started="${SECONDS}"
+  set +e
   "$@"
+  status="$?"
+  set -e
   finished="${SECONDS}"
   elapsed=$((finished - started))
-  log "${label} completed in ${elapsed}s"
+  if [[ "${status}" -eq 0 ]]; then
+    log "${label} completed in ${elapsed}s"
+  else
+    log "${label} failed in ${elapsed}s"
+  fi
+  return "${status}"
 }
 
 port_listening() {
@@ -35,6 +43,22 @@ port_listening() {
 pid_running() {
   local pid_file="$1"
   [[ -s "${pid_file}" ]] && kill -0 "$(cat "${pid_file}")" >/dev/null 2>&1
+}
+
+wait_for_port() {
+  local port="$1"
+  local timeout_seconds="${2:-10}"
+  local waited=0
+
+  while [[ "${waited}" -lt "${timeout_seconds}" ]]; do
+    if port_listening "${port}"; then
+      return 0
+    fi
+    sleep 1
+    waited=$((waited + 1))
+  done
+
+  return 1
 }
 
 ensure_setup() {
@@ -56,9 +80,8 @@ start_xray() {
   log "starting Xray on port ${CODESPACES_VLESS_PORT}"
   nohup "${CODESPACES_VLESS_XRAY_BIN}" run -config "${CODESPACES_VLESS_XRAY_CONFIG}" > "${CODESPACES_VLESS_XRAY_LOG}" 2>&1 &
   printf '%s\n' "$!" > "${CODESPACES_VLESS_XRAY_PID}"
-  sleep 1
 
-  if ! port_listening "${CODESPACES_VLESS_PORT}"; then
+  if ! wait_for_port "${CODESPACES_VLESS_PORT}" 10; then
     log "Xray did not start; inspect ${CODESPACES_VLESS_XRAY_LOG}"
     return 1
   fi
@@ -73,9 +96,8 @@ start_helper() {
   log "starting helper page on port ${CODESPACES_VLESS_HELPER_PORT}"
   nohup node "${SCRIPT_DIR}/helper-server.js" > "${CODESPACES_VLESS_HELPER_LOG}" 2>&1 &
   printf '%s\n' "$!" > "${CODESPACES_VLESS_HELPER_PID}"
-  sleep 1
 
-  if ! port_listening "${CODESPACES_VLESS_HELPER_PORT}"; then
+  if ! wait_for_port "${CODESPACES_VLESS_HELPER_PORT}" 10; then
     log "helper server did not start; inspect ${CODESPACES_VLESS_HELPER_LOG}"
     return 1
   fi

@@ -19,6 +19,7 @@
 - [x] 3.3 Add startup automation that starts the connection helper web server if it is not already running.
 - [x] 3.4 Keep public port visibility as a manual Codespaces Ports panel step.
 - [x] 3.5 Add setup and startup timing logs for diagnosing slow Codespace creation or startup.
+- [x] 3.6 Wait for service ports to listen before considering startup stages complete.
 
 ## 4. Connection Helper Page
 
